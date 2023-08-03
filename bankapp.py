@@ -22,7 +22,9 @@ class Bank:
                 print(f'{self.Username} you have created an account')
                 with open('account.csv', mode='a', newline='') as file:
                     writer = csv.writer(file)
-                    writer.writerow([self.Username, self.password])
+                    writer.writerow(['self.Username','self.password'])
+                    print("Account created ")
+                 
 
                 return
 
@@ -33,17 +35,19 @@ class Bank:
     def login(self):
         enter = input("do you wish to login ? ")
         if enter == "yes":
-            while True:
-                User = input("enter username")
-                pass1 = input("enter password")
+                User = input("enter username: ")
+                pass1 = input("enter password: ")
                 with open('account.csv', mode='r') as file:
                     reader = csv.reader(file)
                     for row in reader:
-                        if User == row[0] and pass1 == row[1]:
-                            return (f"{User} you are in")
-                        else:
-                            return"invalid details"
-        else:
+                        if row[0] == User and pass1 == row[1]:
+                            print(f"{User} you are in")
+                            return True
+                           
+                    print("invalid details")
+                            
+        else:                
+            print("bye")
             return False
 
     def check_balance(self):
@@ -143,8 +147,8 @@ class Bank:
                 print(yl)
                 while True:
                     know = int(input("enter 1 to check balance, 2 to transfer, 3 to check balance, and 4 to "
-                             "buy airtime"))
-                    if know == 1 or know == 2 or know == 3 or know == 4:
+                             "buy airtime and 5 to end the program "))
+                    if know == 1 or know == 2 or know == 3 or know == 4 or know == 5:
                         if know == int(1):
                             gw = bank.check_balance()
                             print(gw)
@@ -157,8 +161,10 @@ class Bank:
                         elif know == int(4):
                             so = bank.buyairtime()
                             print(so)
+                        elif know == int(5):
+                            return "bye"
                     else:
-                        print("enter from range 1 to 4")
+                        print("enter from range 1 to 5")
          
 
 
@@ -167,3 +173,18 @@ class Bank:
 
 
 bank = Bank("username","password")
+
+    
+# print(final())
+# bank = Bank("username","password")
+# print(success())
+
+
+# ty = Bank("user_name", "password")
+# print(ty.create_account())
+# print(ty.login())
+# print(ty.account_number())
+# print(ty.deposit())
+# print(ty.create_pin())
+# print(ty.transfer())
+# print(ty.buyairtime())
