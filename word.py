@@ -1,1 +1,0 @@
-print('my name is dave.\ni am a developer')
