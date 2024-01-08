@@ -1,6 +1,7 @@
 import csv
 import random as t
-
+import sys
+# from csv import reader
 # print("welcome to jayzee bank")
 
 
@@ -29,29 +30,50 @@ class Bank:
                     if file.tell() == 0:  # Write headers only if file is empty
                         writer.writerow(["username", "password", "pin", "account_number", "balance"])
                     writer.writerow([self.Username, self.password, self.createpin2, self.account_number, self.balance])
-                    break
+                    enter = input("do you wish to login ? ")
+                    if enter == "yes":
+                        bank.success()
+                    else:
+                        print("bye")
+                        sys.exit()
+
 
     def login(self):
-        enter = input("do you wish to login ? ")
-        if enter == "yes":
-                User = input("enter username: ")
-                pass1 = input("enter password: ")
-                pin = input("Enter pin:")
-                with open('account.csv', mode='r') as file:
-                    reader = csv.reader(file)
-                    for row in reader:
-                        if row[0] == User and pass1 == row[1] and row[2] ==pin:
-                            print(f"{User} you are in: WELCOME")
-                            return True
+            User = input("enter username: ")
+            pass1 = input("enter password: ")
+            pin = input("Enter pin:")
+            with open('account.csv', mode='r') as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    if row[0] == User and pass1 == row[1] and row[2] ==pin:
+                        print(f"{User} you are in: WELCOME")
+                        return True
                            
-                    print("invalid details")
-                            
-        else:                
-            print("bye")
-            return False
+                return "invalid details"
 
     def check_balance(self):
-        return f"{self.username} here is your account balance {self.balance}"
+        with open('account.csv', 'r') as file:
+            reader = csv.DictReader(file)
+            valid_username = False
+
+            while not valid_username:
+                try:
+                    name = input("Enter Username: ")
+                    for i in reader:
+                        if name == i['username']:
+                            print(f"{name}, your current balance is {i['balance']}")
+                            valid_username = True
+                            break  # Exit the for loop since a valid username is found
+
+                    if not valid_username:
+                        print("Invalid username! Please try again.")
+                        file.seek(0)  # Reset the file position to the beginning for the next iteration
+                except ValueError:
+                    print("Enter numbers only")
+
+
+
+
 
     def create_pin(self):
         while True:
@@ -64,33 +86,28 @@ class Bank:
             continue
 
     def deposit(self):
-        while True:
-            try:
-                amount = int(input("How much would you like to deposit? "))
-                if amount > 0:
-                    self.balance += amount  # Update balance in memory
+        with open('account.csv', 'r', encoding="utf-8") as file:
+            reader = csv.DictReader(file)
+            name = input("Enter Username: ")
+            amt = float(input("amount"))
+            Found = False
+            rows = []
+            for i in reader:
+                if name == i['username']:
+                    i['balance'] = str(float(i['balance']) + amt)
+                    Found = True
+                rows.append(i)
+        if Found:
+            with open("account.csv", "w", newline='',encoding="utf-8") as file:
+                headers = ['username', 'password', 'pin','account_number','balance']
+                csv_write = csv.DictWriter(file, fieldnames=headers)
+                csv_write.writeheader()
+                csv_write.writerows(rows)
+                print(f"{name}.You have successfully made a deposit of {amt}")
+        else:
+            print(f"Enter your correct Username to deposit {name} not found!.")
 
-                # Update balance in CSV file (assuming a header row exists)
-                    with open('account.csv', mode='r', newline='', encoding='utf-8') as file:
-                        reader = csv.reader(file)
-                        headers = next(reader)  # Skip the header row
-                        data = list(reader)
-                    for row in data:
-                        if row[0] == self.username:
-                            row[headers.index("balance")] = str(self.balance)  # Update balance using header index
-                            break
 
-                    with open('account.csv', mode='w', newline='', encoding='utf-8') as file:
-                        writer = csv.writer(file)
-                        writer.writerow(headers)  # Write the header row back
-                        writer.writerows(data)  # Write updated data rows
-
-                    print("Deposit successful. Your new balance is:", self.balance)
-                    break
-                else:
-                    print("Invalid amount. Please enter a positive amount.")
-            except ValueError:
-                print("Invalid input. Please enter a numerical amount.")
 
 
 
@@ -105,25 +122,20 @@ class Bank:
             if len(bank1) == 10:
                 while True:
                     try:
-                        amount1 = int(input("Enter an amount: "))
-                        if amount1 <= self.balance:
-                            pin1 = input("Enter your pin: ")
-
-                            # Read the CSV file using DictReader
-                            with open('account.csv', mode='r', newline='', encoding='utf-8') as file:
-                                reader = csv.DictReader(file)
-                                for row in reader:
-                                    if row['username'] == self.username:  # Access by column name
-                                        if row['pin'] == pin1:
-                                            self.balance -= amount1
-                                            # TODO: Implement logic to transfer funds to the recipient account
-                                            return "Transfer successful!"
-                                        else:
-                                            return "Invaliyyd pin"
-                                        break
-                            return "Invalid pin"
-                        else:
-                            return "Insufficient balance"
+                        with open('account.csv', mode='r', newline='', encoding='utf-8') as file:
+                            reader = csv.DictReader(file)
+                            for row in reader:
+                                amount1 = float(input("Enter an amount: "))
+                                name = input("Enter username")
+                                pin1 = input("Enter your pin: ")
+                                if amount1 <= float(row["balance"]):
+                                    if name == row['username']  and row['pin'] == pin1:  # Access by column name
+                                        row['balance'] = str(float(row['balance']) - amount1)
+                                        return "Transfer successful!"
+                                    else:
+                                        return "Invalid pin"
+                                else:
+                                    return "Insufficient balance"
                     except ValueError:
                         print("Please input numbers only")
             else:
@@ -178,24 +190,21 @@ class Bank:
             return "bye"
         try:
             while successfull_login:
-                bank.deposit()
                 while True:
                     know = int(input("enter 1 to check balance, 2 to transfer, 3 to check balance, and 4 to "
-                             "buy airtime and 5 to end the program "))
-                    if know == 1 or know == 2 or know == 3 or know == 4 or know == 5:
+                             "buy airtime and 5 to deposit and 6 end the program "))
+                    if know == 1 or know == 2 or know == 3 or know == 4 or know == 5 or know ==6:
                         if know == int(1):
-                            gw = bank.check_balance()
-                            print(gw)
+                            return bank.check_balance()
                         elif know == int(2):
-                                io = bank.transfer()
-                                print(io)
+                                return bank.transfer()
                         elif know == int(3):
-                            ju = bank.check_balance()
-                            print(ju)
+                            return bank.check_balance()
                         elif know == int(4):
-                            so = bank.buyairtime()
-                            print(so)
+                            return bank.buyairtime()
                         elif know == int(5):
+                            return bank.deposit()
+                        elif know == int(6):
                             return "bye"
                     else:
                         print("enter from range 1 to 5")
@@ -206,7 +215,7 @@ class Bank:
                 print("please input numbers only")
 
 
-bank = Bank("username","password","oin")
+bank = Bank("username","password","pin")
 
     
 # print(final())
